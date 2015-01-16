@@ -30,10 +30,10 @@ from sickbeard import logger
 from sickbeard import tvcache
 
 
-class TvTorrentsProvider(generic.TorrentProvider):
+class ShazbatProvider(generic.TorrentProvider):
     def __init__(self):
 
-        generic.TorrentProvider.__init__(self, "TvTorrents")
+        generic.TorrentProvider.__init__(self, "Shazbat.TV")
 
         self.supportsBacklog = False
 
@@ -43,9 +43,9 @@ class TvTorrentsProvider(generic.TorrentProvider):
         self.ratio = None
         self.options = None
 
-        self.cache = TvTorrentsCache(self)
+        self.cache = ShazbatCache(self)
 
-        self.urls = {'base_url': 'https://www.tvtorrents.com/'}
+        self.urls = {'base_url': 'https://www.shazbat.tv/'}
         self.url = self.urls['base_url']
 
     def isEnabled(self):
@@ -55,7 +55,7 @@ class TvTorrentsProvider(generic.TorrentProvider):
         return 'tvtorrents.png'
 
     def _checkAuth(self):
-        if not self.digest or not self.hash:
+        if not self.digest or not self.passkey:
             raise AuthException("Your authentication credentials for " + self.name + " are missing, check your config.")
 
         return True
@@ -69,7 +69,7 @@ class TvTorrentsProvider(generic.TorrentProvider):
         except:
             return False
 
-        if title and ("User can't be found" in title or "Invalid Hash" in title):
+        if title and ("User can't be found" in title or "Invalid Passkey" in title):
             logger.log(u"Incorrect authentication credentials for " + self.name + " : " + str(title),
                        logger.DEBUG)
             raise AuthException(
@@ -81,18 +81,18 @@ class TvTorrentsProvider(generic.TorrentProvider):
         return self.ratio
 
 
-class TvTorrentsCache(tvcache.TVCache):
+class ShazbatCache(tvcache.TVCache):
     def __init__(self, provider):
         tvcache.TVCache.__init__(self, provider)
 
-        # only poll TvTorrents every 15 minutes max
+        # only poll Shazbat every 15 minutes max
         self.minTime = 15
 
     def _getRSSData(self):
         # These will be ignored on the serverside.
         ignore_regex = "all.month|month.of|season[\s\d]*complete"
 
-        rss_url = self.provider.url + 'RssServlet?digest=' + provider.digest + '&hash=' + provider.hash + '&fname=true&exclude=(' + ignore_regex + ')'
+        rss_url = self.provider.url + 'RssServlet?passkey='&fname=true&exclude=(' + ignore_regex + ')'
         logger.log(self.provider.name + u" cache update URL: " + rss_url, logger.DEBUG)
 
         return self.getRSSFeed(rss_url)
@@ -100,4 +100,4 @@ class TvTorrentsCache(tvcache.TVCache):
     def _checkAuth(self, data):
         return self.provider._checkAuthFromData(data)
 
-provider = TvTorrentsProvider()
+provider = ShazbatProvider()
